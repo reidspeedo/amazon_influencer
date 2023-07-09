@@ -3,9 +3,9 @@ from urllib.parse import quote
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 
-def scrape_amazon(keyword, api_key):
+def scrape_amazon(keyword, api_key, page, min_reviews, min_price, max_price, min_ratings):
     results = []
-    for page in tqdm(range(1, 2), desc='Scraping Pages'):
+    for page in tqdm(range(page, page+1), desc='Scraping Pages'):
         search_url = f"https://www.amazon.com/s?k={quote(keyword)}&rh=n%3A283155%2Cp_72%3A1250221011%2Cp_n_feature_browse-bin%3A2656022011&dc&{page}&crid=1H2GLYJD7OZRC&qid=1684906776&rnid=618072011&sprefix=scifi+book%2Cstripbooks%2C149&ref=sr_pg_2"
         response = requests.get(get_url(search_url, api_key))
         response.raise_for_status()
@@ -19,7 +19,7 @@ def scrape_amazon(keyword, api_key):
                 product_url = f"https://www.amazon.com/dp/{asin}"
                 name = get_product_name(product)
                 price, num_ratings, rating = get_product_details(product)
-                criteria_match = check_criteria(price, num_ratings, rating)
+                criteria_match = check_criteria(price, num_ratings, rating, min_reviews, min_price, max_price, min_ratings)
                 results.append({
                     'asin': asin,
                     'product_url': product_url,
@@ -31,6 +31,18 @@ def scrape_amazon(keyword, api_key):
                 })
 
     return results
+
+def check_criteria(price, num_ratings, rating, min_reviews, min_price, max_price, min_ratings):
+    try:
+        price_float = float(price.replace('$', '').replace(',', ''))
+        num_ratings_int = int(num_ratings.replace(',', ''))
+        rating_float = float(rating.split()[0])
+        if price_float > min_price and price_float < max_price and num_ratings_int > min_reviews and rating_float > min_ratings:
+            return 'Yes'
+        else:
+            return 'No'
+    except ValueError:
+        return 'No'
 
 def get_product_name(product):
     name_element = product.select_one('.a-link-normal .a-size-base-plus')
@@ -48,17 +60,7 @@ def get_product_details(product):
 
     return price, num_ratings, rating
 
-def check_criteria(price, num_ratings, rating):
-    try:
-        price_float = float(price.replace('$', '').replace(',', ''))
-        num_ratings_int = int(num_ratings.replace(',', ''))
-        rating_float = float(rating.split()[0])
-        if price_float > 8 and num_ratings_int > 10000 and rating_float > 4:
-            return 'Yes'
-        else:
-            return 'No'
-    except ValueError:
-        return 'No'
+
 
 def get_url(url, api_key):
     payload = {'api_key': api_key, 'url': url}

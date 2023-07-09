@@ -1,8 +1,15 @@
 {
+    "keyword": "scifi book",
     "api_key": "86fa8763f913747bb9ecee954669e2b8",
-    "keyword": "sleeping bag",
-    "csv_file": "test.csv",
+    "csv_file": "tste.csv",
     "search_history": [
-        "sleeping bag"
-    ]
+        "test",
+        "test",
+        "kayaks"
+    ],
+    "page": "1",
+    "min_reviews": "100",
+    "min_price": "10",
+    "max_price": "1000",
+    "min_ratings": "4"
 }
